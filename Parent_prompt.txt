@@ -1,0 +1,323 @@
+# Production-Grade School Management System (SMS)
+## Spring Boot 3.2+ Architecture Specification
+
+### 1. Architectural Blueprint
+
+┌──────────────────────┐ ┌──────────────────────┐
+│ postman │──────▶│ API Gateway │
+│ () │◀──────│ │
+└──────────────────────┘ └──────────┬───────────┘
+│
+┌───────────────┼───────────────┐
+▼ ▼ ▼
+┌───────────────────┐ ┌───────────────────┐ ┌───────────────────┐
+│ Student Service │ │ Attendance Service │ │ Grading Service │
+│ (Spring Boot App) │ │ (Spring Boot App) │ │ (Spring Boot App) │
+└─────────┬─────────┘ └─────────┬─────────┘ └─────────┬─────────┘
+│ │ │
+┌─────────▼─────────┐ ┌─────────▼─────────┐ ┌─────────▼─────────┐
+│ Domain Model │ │ Domain Model │ │ Domain Model │
+│ (DDD Aggregates) │ │ (DDD Aggregates) │ │ (DDD Aggregates) │
+└─────────┬─────────┘ └─────────┬─────────┘ └─────────┬─────────┘
+│ │ │
+┌─────────▼─────────┐ ┌─────────▼─────────┐ ┌─────────▼─────────┐
+│ Repository │ │ Repository │ │ Repository │
+│ (Spring Data JPA) │ │ (Spring Data JPA) │ │ (Spring Data JPA) │
+└─────────┬─────────┘ └─────────┬─────────┘ └─────────┬─────────┘
+│ │ │
+└──────────┬──────────┴──────────┬──────────┘
+▼ ▼
+┌──────────────────────┐
+│ H2 DB   │
+│
+└──────────────────────┘ 
+
+
+### 2. Technology Stack
+- **Core Framework**: Spring Boot 3.2.4 (Java 21)
+- **Persistence**: 
+  - H2 DB 
+  - Spring Data JPA 3.2
+  - Hibernate 6.4.4.Final
+- **Security**: 
+  - Spring Security 6.3 
+- **API**: 
+  - Spring MVC
+  - OpenAPI 3.1 (SpringDoc)
+- **Testing**:
+  - JUnit 5.11
+  - Testcontainers 1.19.7
+- **Build**: Maven 3.8.6 (Multi-module)
+- **logging**:
+	-Use SLF4J with Logback for all logging.
+	-Include timestamps and user/contextual data in logs.
+	-Log major events like registration, login attempts, and grade changes.
+	-Separate audit logs may be used for sensitive actions.
+
+### 3. Security Requirements
+1. **Authentication**:
+   - Password authentication(Hashing)
+   - Session timeout: 30 minutes
+
+2. **Authorization**:
+   ```java
+   @PreAuthorize("hasAuthority('DELETE_STUDENT')")
+   @DeleteMapping("/students/{id}")
+   public ResponseEntity<Void> deleteStudent(@PathVariable Long id) {
+       studentCommandService.deleteStudent(id);
+       return ResponseEntity.noContent().build();
+   }
+   
+   
+	
+	
+4. Domain-Driven Package Structure
+sms-parent/
+├── student-service/
+│   ├── src/main/java/
+│   │   ├── com/sms/student/
+│   │   │   ├── application/          # Use cases
+│   │   │   │   ├── command/          # CQRS commands
+│   │   │   │   ├── query/            # CQRS queries
+│   │   │   │   └── event/            # Domain events
+│   │   │   ├── domain/               # Core domain
+│   │   │   │   ├── model/            # Aggregates/entities
+│   │   │   │   └── service/          # Domain services
+│   │   │   ├── infrastructure/       # Technical implementation
+│   │   │   │   ├── persistence/      # JPA repositories
+│   │   │   │   ├── web/              # REST controllers
+│   │   │   │   └
+│   │   │   └── StudentApplication.java
+│   │   └── resources/
+│   │       ├── application.yml
+│   │       ├── db/changelog/         # Liquibase migrations
+│   │       └── 
+├── attendance-service/                # Similar structure
+└── grade-service/                     # Similar structure
+
+
+5. Code Examples
+	1.Layered Architecture Pattern
+		// Controller Layer
+		@Controller
+		@RequestMapping("/students")
+		public class StudentController {
+
+			@Autowired
+			private StudentService studentService;
+
+			@GetMapping("/{id}")
+			public String getStudent(@PathVariable Long id, Model model) {
+				Student student = studentService.getStudentById(id)
+					.orElseThrow(() -> new StudentNotFoundException(id));
+				model.addAttribute("student", student);
+				return "student-details";  // Thymeleaf template name
+			}
+
+			@PostMapping("/register")
+			public String registerStudent(@ModelAttribute @Valid StudentRegistrationForm form,
+										   BindingResult result) {
+				if (result.hasErrors()) {
+					return "registration-form";  // Return to form on error
+				}
+				studentService.registerStudent(form);
+				return "redirect:/students";  // Redirect to student list after registration
+			}
+		}
+
+	2.Service Layer (Business Logic)
+		@Service
+		@Transactional
+		public class StudentServiceImpl implements StudentService {
+
+			@Autowired
+			private StudentRepository studentRepository;
+
+			@Override
+			public Optional<Student> getStudentById(Long id) {
+				return studentRepository.findById(id);  // Return empty if not found
+			}
+
+			@Override
+			public void registerStudent(StudentRegistrationForm form) {
+				Student student = new Student();
+				student.setFirstName(form.getFirstName());
+				student.setLastName(form.getLastName());
+				student.setEmail(form.getEmail());
+				studentRepository.save(student);
+			}
+		}
+	3.Repository Layer (Data Access)
+		@Service
+		@Transactional
+		public class StudentServiceImpl implements StudentService {
+
+			@Autowired
+			private StudentRepository studentRepository;
+
+			@Override
+			public Optional<Student> getStudentById(Long id) {
+				return studentRepository.findById(id);  // Return empty if not found
+			}
+
+			@Override
+			public void registerStudent(StudentRegistrationForm form) {
+				Student student = new Student();
+				student.setFirstName(form.getFirstName());
+				student.setLastName(form.getLastName());
+				student.setEmail(form.getEmail());
+				studentRepository.save(student);
+			}
+		}
+	4. Security Configuration
+		@EnableWebSecurity
+		public class SecurityConfig extends WebSecurityConfigurerAdapter {
+
+			@Override
+			protected void configure(HttpSecurity http) throws Exception {
+				http.authorizeRequests()
+					.antMatchers("/", "/students/**", "/register").permitAll()
+					.anyRequest().authenticated()
+					.and()
+					.formLogin()
+					.loginPage("/login")
+					.permitAll()
+					.and()
+					.logout()
+					.permitAll();
+			}
+
+			@Autowired
+			public void configureGlobal(AuthenticationManagerBuilder auth) throws Exception {
+				auth.inMemoryAuthentication()
+					.withUser("admin").password(passwordEncoder().encode("adminPass")).roles("ADMIN")
+					.and()
+					.withUser("teacher").password(passwordEncoder().encode("teacherPass")).roles("TEACHER");
+			}
+
+			@Bean
+			public PasswordEncoder passwordEncoder() {
+				return new BCryptPasswordEncoder();
+			}
+		}
+
+	5. Validation & Error Handling
+
+	DTO Validation:
+
+		public record CreateStudentRequest(
+			@NotBlank @Size(max=100) String firstName,
+			@NotBlank @Size(max=100) String lastName,
+			@Email @UniqueEmail String email,
+			@Past LocalDate birthDate,
+			@Pattern(regexp = "^\\+?[1-9]\\d{1,14}$") String phone
+		) {}
+
+
+	Global Exception Handler:
+		@RestControllerAdvice
+		public class GlobalExceptionHandler {
+			
+			@ExceptionHandler(ConstraintViolationException.class)
+			public ProblemDetail handleValidation(ConstraintViolationException ex) {
+				var detail = ProblemDetail.forStatus(UNPROCESSABLE_ENTITY);
+				detail.setProperty("violations", ex.getConstraintViolations().stream()
+					.map(v -> new Violation(
+						v.getPropertyPath().toString(), 
+						v.getMessage()
+					)).toList()
+				);
+				return detail;
+			}
+			
+			@ExceptionHandler(StudentNotFoundException.class)
+			public ProblemDetail handleNotFound(StudentNotFoundException ex) {
+				return ProblemDetail.forStatusAndDetail(NOT_FOUND, ex.getMessage());
+			}
+		}
+
+	6. Performance Optimization
+
+		Caching Strategy:
+			@Cacheable(value = "students", key = "#id")
+			@Transactional(readOnly = true)
+			public Student getStudent(Long id) {
+				return studentRepository.findById(id)
+						.orElseThrow(() -> new StudentNotFoundException(id));
+			}
+			
+		Database Optimization:
+
+			Connection pooling (HikariCP)
+
+			Read-only replicas for queries
+
+			Entity graphs for JOIN fetching
+
+			Batch processing for bulk inserts
+
+		Thread Management:
+
+			Virtual threads (Project Loom)
+
+			@Async for long-running operations
+			
+	7. Testing Requirements
+		Test Pyramid:
+
+			Unit Tests: 70% coverage (Mockito)
+
+			Integration Tests: 20% (Testcontainers)
+
+			E2E Tests: 10% (Selenium)
+			
+		Testcontainers Example:
+			@Testcontainers
+			@SpringBootTest
+			class StudentRegistrationIT {
+
+				@Container
+				
+				@Container
+				static KafkaContainer kafka = new KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.6.0"));
+
+				@DynamicPropertySource
+				static void configure(DynamicPropertyRegistry registry) {
+					registry.add("spring.datasource.url", mariaDB::getJdbcUrl);
+					registry.add("spring.kafka.bootstrap-servers", kafka::getBootstrapServers);
+				}
+				
+				@Test
+				void shouldRegisterStudentAndProduceEvent() {
+					// Test logic
+				}
+			}
+		
+6. Coding Standards
+	1. Naming Conventions
+	2. Classes: Use PascalCase (e.g., StudentService, CourseController).
+	3. Methods: Utilize camelCase (e.g., enrollStudent, markAttendance).
+	4. Variables: Follow camelCase (e.g., studentList, courseName).
+	5. Constants: Define in UPPER_SNAKE_CASE (e.g., MAX_STUDENT_NAME_LENGTH).
+7. Code Formatting:
+	1. Indent code blocks using four spaces.
+	2. Keep lines under 120 characters; break long lines appropriately.
+	3. Group related import statements together, separated by a blank line.
+	4. Documentation Requirements
+	5. JavaDoc: Include documentation for all public methods and classes, explaining parameters and return values.
+	6. Inline Comments: Use comments to clarify complex logic or non-obvious sections of code.
+	7. README: Provide detailed setup instructions, usage guidelines, and API documentation.
+	8. Validation Standards
+	9. Utilize Bean Validation annotations such as @Valid, @NotNull, and @Size.
+	10. Implement custom validators as needed for business-specific rules.
+	11. Ensure input sanitization to prevent XSS and SQL injection attacks.
+7. Testing Requirements
+	1. Unit Tests: Maintain at least 85% coverage for the service layer.
+	2. Integration Tests: Validate functionality of all critical endpoints.
+	3. Repository Tests: Ensure custom queries function as expected.
+	4. UI Tests: Use Selenium for automated testing of user workflows.
+8. Security Requirements
+	1. Authentication: Implement role-based access control using Spring Security.
+	2. Authorization: Enforce method-level security annotations for sensitive operations.
+	3. CSRF Protection: Ensure CSRF tokens are enabled for state-altering requests.
+	4. Input Validation: Perform thorough server-side validation for all forms and API inputs.
