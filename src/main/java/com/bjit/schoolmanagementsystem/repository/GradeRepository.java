@@ -9,7 +9,7 @@ import java.util.List;
 
 public interface GradeRepository extends JpaRepository<Grade, Long> {
 
-    List<Grade> findByStudentId(Long studentId);
+    List<Grade> findByStudentId(String studentId);
 
     List<Grade> findByCourseId(Long courseId);
 
@@ -20,6 +20,6 @@ public interface GradeRepository extends JpaRepository<Grade, Long> {
                AND g.courseId = :courseId
             """)
     List<Grade> findByStudentIdAndCourseId(
-            @Param("studentId") Long studentId,
+            @Param("studentId") String studentId,
             @Param("courseId") Long courseId);
 }

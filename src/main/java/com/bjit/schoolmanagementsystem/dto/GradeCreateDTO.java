@@ -11,7 +11,7 @@ import org.antlr.v4.runtime.misc.NotNull;
 @Getter
 public class GradeCreateDTO {
     @NotNull
-    private Long studentId;
+    private String studentId;
 
     @NotNull
     private Long courseId;

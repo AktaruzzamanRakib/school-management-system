@@ -12,7 +12,7 @@ public interface GradeService {
 
     GradeDTO getGradeById(Long id);
 
-    List<GradeDTO> getGradesByStudent(Long studentId);
+    List<GradeDTO> getGradesByStudent(String studentId);
 
     List<GradeDTO> getGradesByCourse(Long courseId);
 

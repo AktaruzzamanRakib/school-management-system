@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @Builder
 public class GradeDTO {
     private Long id;
-    private Long studentId;
+    private String studentId;
     private Long courseId;
     private String letter;
     private Double score;

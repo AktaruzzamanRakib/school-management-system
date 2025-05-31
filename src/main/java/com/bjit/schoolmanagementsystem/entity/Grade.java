@@ -28,7 +28,7 @@ public class Grade {
     private LocalDateTime dateAssigned;
 
     @Column(name = "student_id", nullable = false)
-    private Long studentId;
+    private String studentId;
 
     @Column(name = "course_id", nullable = false)
     private Long courseId;

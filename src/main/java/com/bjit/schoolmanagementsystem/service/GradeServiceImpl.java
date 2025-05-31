@@ -9,6 +9,7 @@ import com.bjit.schoolmanagementsystem.entity.Grade;
 import com.bjit.schoolmanagementsystem.exception.GradeNotFoundException;
 import com.bjit.schoolmanagementsystem.exception.ValidationException;
 import com.bjit.schoolmanagementsystem.repository.GradeRepository;
+import com.bjit.schoolmanagementsystem.repository.StudentRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,9 +27,15 @@ import java.util.stream.Collectors;
 public class GradeServiceImpl implements GradeService {
 
     private final GradeRepository gradeRepository;
+    private final StudentRepository studentRepository;
 
     @Override
     public GradeDTO createGrade(GradeCreateDTO dto) {
+
+        boolean isStudentExist = studentRepository.existsByStudentId(dto.getStudentId());
+        if (!isStudentExist) {
+            throw new ValidationException(List.of("Student with ID " + dto.getStudentId() + " does not exist"));
+        }
         // 1. Prevent duplicate grade for same student+course
         List<Grade> existing = gradeRepository
                 .findByStudentIdAndCourseId(dto.getStudentId(), dto.getCourseId());
@@ -60,7 +67,7 @@ public class GradeServiceImpl implements GradeService {
     }
 
     @Override
-    public List<GradeDTO> getGradesByStudent(Long studentId) {
+    public List<GradeDTO> getGradesByStudent(String studentId) {
         List<Grade> list = gradeRepository.findByStudentId(studentId);
         return list.stream()
                 .map(GradeMapper::toDTO)

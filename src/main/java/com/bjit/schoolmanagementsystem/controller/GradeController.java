@@ -43,8 +43,8 @@ public class GradeController {
      */
     @GetMapping
     public ResponseEntity<List<GradeDTO>> getAllGrades(
-            @RequestParam(value = "studentId", required = false) Long studentId,
-            @RequestParam(value = "courseId",  required = false) Long courseId) {
+            @RequestParam(value = "studentId", required = false) String studentId,
+            @RequestParam(value = "courseId", required = false) Long courseId) {
 
         List<GradeDTO> result;
         if (studentId != null) {
