@@ -1,36 +1,15 @@
 # Production-Grade School Management System (SMS)
+
+
+Project Overview
+
+You are tasked with developing a Spring Boot REST web application that functions as a School Management System (SMS).
+This system will manage student registrations, course enrollments, attendance tracking, grades management, and communication between teachers and students/parents.
+
 ## Spring Boot 3.2+ Architecture Specification
 
-### 1. Architectural Blueprint
-
-┌──────────────────────┐ ┌──────────────────────┐
-│ postman │──────▶│ API Gateway │
-│ () │◀──────│ │
-└──────────────────────┘ └──────────┬───────────┘
-│
-┌───────────────┼───────────────┐
-▼ ▼ ▼
-┌───────────────────┐ ┌───────────────────┐ ┌───────────────────┐
-│ Student Service │ │ Attendance Service │ │ Grading Service │
-│ (Spring Boot App) │ │ (Spring Boot App) │ │ (Spring Boot App) │
-└─────────┬─────────┘ └─────────┬─────────┘ └─────────┬─────────┘
-│ │ │
-┌─────────▼─────────┐ ┌─────────▼─────────┐ ┌─────────▼─────────┐
-│ Domain Model │ │ Domain Model │ │ Domain Model │
-│ (DDD Aggregates) │ │ (DDD Aggregates) │ │ (DDD Aggregates) │
-└─────────┬─────────┘ └─────────┬─────────┘ └─────────┬─────────┘
-│ │ │
-┌─────────▼─────────┐ ┌─────────▼─────────┐ ┌─────────▼─────────┐
-│ Repository │ │ Repository │ │ Repository │
-│ (Spring Data JPA) │ │ (Spring Data JPA) │ │ (Spring Data JPA) │
-└─────────┬─────────┘ └─────────┬─────────┘ └─────────┬─────────┘
-│ │ │
-└──────────┬──────────┴──────────┬──────────┘
-▼ ▼
-┌──────────────────────┐
-│ H2 DB   │
-│
-└──────────────────────┘ 
+### 1. Architectural
+ The project follow the REST based layered architecture.
 
 
 ### 2. Technology Stack
@@ -68,32 +47,43 @@
        return ResponseEntity.noContent().build();
    }
    
-   
+
 	
-	
-4. Domain-Driven Package Structure
-sms-parent/
-├── student-service/
-│   ├── src/main/java/
-│   │   ├── com/sms/student/
-│   │   │   ├── application/          # Use cases
-│   │   │   │   ├── command/          # CQRS commands
-│   │   │   │   ├── query/            # CQRS queries
-│   │   │   │   └── event/            # Domain events
-│   │   │   ├── domain/               # Core domain
-│   │   │   │   ├── model/            # Aggregates/entities
-│   │   │   │   └── service/          # Domain services
-│   │   │   ├── infrastructure/       # Technical implementation
-│   │   │   │   ├── persistence/      # JPA repositories
-│   │   │   │   ├── web/              # REST controllers
-│   │   │   │   └
-│   │   │   └── StudentApplication.java
-│   │   └── resources/
-│   │       ├── application.yml
-│   │       ├── db/changelog/         # Liquibase migrations
-│   │       └── 
-├── attendance-service/                # Similar structure
-└── grade-service/                     # Similar structure
+4. Package Structure
+
+├── controller/           // REST endpoints, handles HTTP requests/responses
+│   ├── StudentController.java
+│   ├── TeacherController.java
+│   └── CourseController.java
+├── service/              // Business logic layer
+│   ├── impl/             // Implementation classes
+│   │   ├── StudentServiceImpl.java
+│   │   └── TeacherServiceImpl.java
+│   ├── StudentService.java  // Service interfaces
+│   └── TeacherService.java
+├── repository/           // Data access layer
+│   ├── StudentRepository.java
+│   └── TeacherRepository.java
+├── model/                // Domain entities
+│   ├── Student.java
+│   ├── Teacher.java
+│   ├── Course.java
+│   └── ErrorResponse.java
+├── dto/                  // Data Transfer Objects
+│   ├── request/
+│   │   ├── StudentRequest.java
+│   │   └── TeacherRequest.java
+│   └── response/
+│       ├── StudentResponse.java
+│       └── TeacherResponse.java
+├── exception/            // Custom exceptions
+│   ├── GlobalExceptionHandler.java
+│   ├── StudentNotFoundException.java
+│   └── ValidationException.java
+├── config/               // Configuration classes
+│   └── SecurityConfig.java
+└── util/                 // Utility classes
+    └── ValidationUtils.java
 
 
 5. Code Examples
@@ -295,29 +285,29 @@ sms-parent/
 		
 6. Coding Standards
 	1. Naming Conventions
-	2. Classes: Use PascalCase (e.g., StudentService, CourseController).
-	3. Methods: Utilize camelCase (e.g., enrollStudent, markAttendance).
-	4. Variables: Follow camelCase (e.g., studentList, courseName).
-	5. Constants: Define in UPPER_SNAKE_CASE (e.g., MAX_STUDENT_NAME_LENGTH).
+	2. Classes:Use PascalCase (e.g.,StudentService,CourseController).
+	3. Methods:Utilize camelCase (e.g.,enrollStudent,markAttendance).
+	4. Variables:Follow camelCase (e.g.,studentList,courseName).
+	5. Constants:Define in UPPER_SNAKE_CASE (e.g.,MAX_STUDENT_NAME_LENGTH).
 7. Code Formatting:
 	1. Indent code blocks using four spaces.
 	2. Keep lines under 120 characters; break long lines appropriately.
 	3. Group related import statements together, separated by a blank line.
 	4. Documentation Requirements
-	5. JavaDoc: Include documentation for all public methods and classes, explaining parameters and return values.
-	6. Inline Comments: Use comments to clarify complex logic or non-obvious sections of code.
-	7. README: Provide detailed setup instructions, usage guidelines, and API documentation.
+	5. JavaDoc:Include documentation for all public methods and classes, explaining parameters and return values.
+	6. Inline Comments:Use comments to clarify complex logic or non-obvious sections of code.
+	7. README:Provide detailed setup instructions, usage guidelines, and API documentation.
 	8. Validation Standards
-	9. Utilize Bean Validation annotations such as @Valid, @NotNull, and @Size.
+	9. Utilize Bean Validation annotations such as@Valid,@NotNull, and@Size.
 	10. Implement custom validators as needed for business-specific rules.
 	11. Ensure input sanitization to prevent XSS and SQL injection attacks.
 7. Testing Requirements
-	1. Unit Tests: Maintain at least 85% coverage for the service layer.
-	2. Integration Tests: Validate functionality of all critical endpoints.
-	3. Repository Tests: Ensure custom queries function as expected.
-	4. UI Tests: Use Selenium for automated testing of user workflows.
+	1. Unit Tests:Maintain at least 85% coverage for the service layer.
+	2. Integration Tests:Validate functionality of all critical endpoints.
+	3. Repository Tests:Ensure custom queries function as expected.
+	4. UI Tests:Use Selenium for automated testing of user workflows.
 8. Security Requirements
-	1. Authentication: Implement role-based access control using Spring Security.
-	2. Authorization: Enforce method-level security annotations for sensitive operations.
-	3. CSRF Protection: Ensure CSRF tokens are enabled for state-altering requests.
-	4. Input Validation: Perform thorough server-side validation for all forms and API inputs.
+	1. Authentication:Implement role-based access control using Spring Security.
+	2. Authorization:Enforce method-level security annotations for sensitive operations.
+	3. CSRF Protection:Ensure CSRF tokens are enabled for state-altering requests.
+	4. Input Validation:Perform thorough server-side validation for all forms and API inputs.
