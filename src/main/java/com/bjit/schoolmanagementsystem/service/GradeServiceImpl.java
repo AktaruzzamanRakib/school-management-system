@@ -3,7 +3,7 @@ package com.bjit.schoolmanagementsystem.service;
 
 import com.bjit.schoolmanagementsystem.dto.GradeCreateDTO;
 import com.bjit.schoolmanagementsystem.dto.GradeDTO;
-import com.bjit.schoolmanagementsystem.dto.GradeMapper;
+import com.bjit.schoolmanagementsystem.mapper.GradeMapper;
 import com.bjit.schoolmanagementsystem.dto.GradeUpdateDTO;
 import com.bjit.schoolmanagementsystem.entity.Grade;
 import com.bjit.schoolmanagementsystem.exception.GradeNotFoundException;

@@ -1,21 +1,13 @@
-package com.bjit.schoolmanagementsystem.dto;
+package com.bjit.schoolmanagementsystem.mapper;
 
+import com.bjit.schoolmanagementsystem.dto.GradeDTO;
+import com.bjit.schoolmanagementsystem.dto.GradeUpdateDTO;
 import com.bjit.schoolmanagementsystem.entity.Grade;
 
 import java.time.LocalDateTime;
 
 
 public class GradeMapper {
-
-    public static Grade toEntity(GradeCreateDTO dto) {
-        return Grade.builder()
-                .studentId(dto.getStudentId())
-                .courseId(dto.getCourseId())
-                .letter(dto.getLetter())
-                .score(dto.getScore())
-                .dateAssigned(LocalDateTime.now())
-                .build();
-    }
 
     public static GradeDTO toDTO(Grade entity) {
         return GradeDTO.builder()

@@ -19,9 +19,6 @@ public class GradeController {
 
     private final GradeService gradeService;
 
-    /**
-     * POST /api/grades : Create a new grade.
-     */
     @PostMapping
     public ResponseEntity<GradeDTO> createGrade(
             @RequestBody @Valid GradeCreateDTO createDTO) {
@@ -29,18 +26,12 @@ public class GradeController {
         return ResponseEntity.status(HttpStatus.CREATED).body(dto);
     }
 
-    /**
-     * GET /api/grades/{id} : Retrieve a grade by ID.
-     */
     @GetMapping("/{id}")
     public ResponseEntity<GradeDTO> getGradeById(@PathVariable Long id) {
         GradeDTO dto = gradeService.getGradeById(id);
         return ResponseEntity.ok(dto);
     }
 
-    /**
-     * GET /api/grades : Retrieve all grades, optionally filtering by studentId or courseId.
-     */
     @GetMapping
     public ResponseEntity<List<GradeDTO>> getAllGrades(
             @RequestParam(value = "studentId", required = false) String studentId,
@@ -57,9 +48,7 @@ public class GradeController {
         return ResponseEntity.ok(result);
     }
 
-    /**
-     * PUT /api/grades/{id} : Update an existing grade.
-     */
+
     @PutMapping("/{id}")
     public ResponseEntity<GradeDTO> updateGrade(
             @PathVariable Long id,
@@ -69,9 +58,7 @@ public class GradeController {
         return ResponseEntity.ok(updated);
     }
 
-    /**
-     * DELETE /api/grades/{id} : Delete a grade by ID.
-     */
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteGrade(@PathVariable Long id) {
         gradeService.deleteGrade(id);
